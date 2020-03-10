@@ -2,10 +2,10 @@
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
-use App\Models\User;
+use App\Models\Group;
 use Faker\Generator as Faker;
 
-$factory->define(User::class, function (Faker $faker) {
+$factory->define(Group::class, function (Faker $faker) {
     return [
         //
     ];
