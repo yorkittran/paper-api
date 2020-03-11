@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Str;
 
 class AuthController extends Controller
 {
@@ -21,9 +24,14 @@ class AuthController extends Controller
         $password = $request->get('password');
 
         if (Auth::attempt(['email' => $email, 'password' => $password])) {
-            return response()->json(['message' => 'Login successfully'], Response::HTTP_OK);
+            $user = Auth::user();
+            if (!$user->api_token) {
+                $user->api_token = Str::random(60);
+                $user->update();
+            }
+            return response()->json(['api_token' => $user->api_token], Response::HTTP_OK);
         }
-        return response()->json(['message' => 'Login failed'], Response::HTTP_UNAUTHORIZED);
+        return response()->json(['message' => 'Email or password is incorrect.'], Response::HTTP_UNAUTHORIZED);
     }
 
     /**
@@ -31,9 +39,11 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::logout();
+        $user = User::where('api_token', $request->header('Authorization'))->first();
+        $user->api_token = '';
+        $user->update();
         return response()->json(['message' => 'Logout successfully'], Response::HTTP_OK);
     }
 }

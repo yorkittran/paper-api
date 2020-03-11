@@ -18,4 +18,4 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('login', 'Api\AuthController@login');
-Route::post('logout', 'Api\AuthController@logout');
+Route::post('logout', 'Api\AuthController@logout')->middleware('auth:api');
