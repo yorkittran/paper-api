@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Group;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class GroupController extends Controller
 {
@@ -36,7 +38,8 @@ class GroupController extends Controller
      */
     public function show($id)
     {
-        //
+        $listMemberInGroup = Group::find($id)->first()->members;
+        return response()->json(['data' => $listMemberInGroup], Response::HTTP_OK);
     }
 
     /**

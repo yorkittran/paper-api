@@ -16,7 +16,7 @@ class CreateGroupsTable extends Migration
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('manager_id');
-            $table->string('name');
+            $table->string('name')->unique();
             $table->timestamps();
             $table->softDeletes();
 

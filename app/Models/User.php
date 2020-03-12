@@ -17,7 +17,7 @@ class User extends Model implements Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'role',
+        'email', 'role',
     ];
 
     /**
@@ -28,4 +28,9 @@ class User extends Model implements Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    public function group()
+    {
+        return $this->hasOne('App\Models\Group', 'manager_id')->withTrashed();
+    }
 }
