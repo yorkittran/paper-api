@@ -16,8 +16,8 @@ class CreateTasksTable extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->datetime('start_time');
-            $table->datetime('end_time');
+            $table->datetime('start_at');
+            $table->datetime('end_at');
             $table->string('status', 1)->default('0');
             $table->string('description_assigned');
             $table->string('description_committed')->nullable();
@@ -25,17 +25,25 @@ class CreateTasksTable extends Migration
             $table->float('mark')->nullable();
             $table->datetime('evaluated_at')->nullable();
             $table->datetime('committed_at')->nullable();
-            $table->datetime('approvied_at')->nullable();
+            $table->datetime('approved_at')->nullable();
             $table->unsignedBigInteger('old_task')->nullable();
-            $table->unsignedBigInteger('user_created_id');
-            $table->unsignedBigInteger('user_assigned_id');
+            $table->unsignedBigInteger('assigner_id')->nullable();
+            $table->unsignedBigInteger('assignee_id')->nullable();
+            $table->unsignedBigInteger('approver_id')->nullable();
+            $table->unsignedBigInteger('commenter_id')->nullable();
+            $table->unsignedBigInteger('creator_id')->nullable();
+            $table->unsignedBigInteger('updater_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             // Foreign keys
             $table->foreign('old_task')->references('id')->on('tasks');
-            $table->foreign('user_created_id')->references('id')->on('users');
-            $table->foreign('user_assigned_id')->references('id')->on('users');
+            $table->foreign('assigner_id')->references('id')->on('users');
+            $table->foreign('assignee_id')->references('id')->on('users');
+            $table->foreign('approver_id')->references('id')->on('users');
+            $table->foreign('commenter_id')->references('id')->on('users');
+            $table->foreign('creator_id')->references('id')->on('users');
+            $table->foreign('updater_id')->references('id')->on('users');
 
         });
     }

@@ -38,7 +38,8 @@ class GroupController extends Controller
      */
     public function show($id)
     {
-        $listMemberInGroup = Group::find($id)->first()->members;
+        $terms = request()->get('search');
+        $listMemberInGroup = Group::find($id)->first()->whereLike(['members.name', 'members.email'], $terms)->members;
         return response()->json(['data' => $listMemberInGroup], Response::HTTP_OK);
     }
 
