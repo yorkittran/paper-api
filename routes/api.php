@@ -20,4 +20,15 @@ use Illuminate\Support\Facades\Route;
 Route::post('login', 'Api\AuthController@login');
 Route::post('logout', 'Api\AuthController@logout')->middleware('auth:api');
 
-Route::resource('group', 'Api\GroupController');
+Route::get('group', 'Api\GroupController@index')->name('group.index');
+Route::post('group', 'Api\GroupController@store')->name('group.store');
+Route::delete('group/{group}', 'Api\GroupController@delete')->name('group.delete');
+Route::match(['put', 'patch'], 'group/{group}', 'Api\GroupController@update')->name('group.update');
+
+Route::get('user', 'Api\UserController@index')->name('user.index');
+Route::post('user', 'Api\UserController@store')->name('user.store');
+Route::get('user/{user}', 'Api\UserController@show')->name('user.index');
+Route::delete('user/{user}', 'Api\UserController@delete')->name('user.delete');
+Route::match(['put', 'patch'], 'user/{user}', 'Api\UserController@update')->name('user.update');
+
+Route::resource('task', 'Api\TaskController');

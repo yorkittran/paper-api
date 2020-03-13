@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UserRequest extends FormRequest
+class GroupRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,12 +27,6 @@ class UserRequest extends FormRequest
             'name' => [
                 'required', 'min:6'
             ],
-            'email' => [
-                'required', 'email', Rule::unique((new User())->getTable())->ignore($this->route()->user->id ?? null)
-            ],
-            'password' => [
-                $this->route()->user ? 'nullable' : 'required', 'confirmed', 'min:6'
-            ]
         ];
     }
 }

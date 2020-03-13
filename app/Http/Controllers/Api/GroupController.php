@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GroupRequest;
+use App\Http\Resources\GroupResource;
 use App\Models\Group;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class GroupController extends Controller
@@ -16,7 +17,9 @@ class GroupController extends Controller
      */
     public function index()
     {
-        //
+        $terms = request()->get('search');
+
+        return GroupResource::collection(Group::whereLike('name', $terms)->get());
     }
 
     /**
@@ -25,44 +28,50 @@ class GroupController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(GroupRequest $request, Group $model)
     {
-        //
+        $model->create($request->all());
+        return response()->json(
+            Response::HTTP_OK
+        );
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        $terms = request()->get('search');
-        $listMemberInGroup = Group::find($id)->first()->whereLike(['members.name', 'members.email'], $terms)->members;
-        return response()->json(['data' => $listMemberInGroup], Response::HTTP_OK);
+
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  App\Models\Group $group
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(GroupRequest $request, Group $group)
     {
-        //
+        $group->update($request->all());
+        return response()->json(
+            Response::HTTP_OK
+        );
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  App\Models\Group $group
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Group $group)
     {
-        //
+        $group->delete();
+        return response()->json(
+            Response::HTTP_NO_CONTENT
+        );
     }
 }

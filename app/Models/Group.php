@@ -20,6 +20,11 @@ class Group extends Model
 
     public function members()
     {
-        return $this->hasMany('App\Models\User')->withTrashed()->select('name', 'email');
+        return $this->hasMany('App\Models\User')->withTrashed();
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo('App\Models\User', 'manager_id', 'id')->withTrashed();
     }
 }
