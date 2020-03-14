@@ -88,4 +88,20 @@ class UserController extends Controller
             Response::HTTP_NO_CONTENT
         );
     }
+
+    /**
+     * Display a listing of users in group belongs to manager
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function usersInGroup()
+    {
+        $manager_id = request()->get('manager_id');
+        $terms      = request()->get('terms');
+
+        return response()->json(
+            ['data' => User::where('group_id', $manager_id)->whereLike(['name', 'email', 'role'], $terms)->get(['name', 'email', 'role'])],
+            Response::HTTP_OK
+        );
+    }
 }

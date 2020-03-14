@@ -30,5 +30,6 @@ Route::post('user', 'Api\UserController@store')->name('user.store');
 Route::get('user/{user}', 'Api\UserController@show')->name('user.index');
 Route::delete('user/{user}', 'Api\UserController@delete')->name('user.delete');
 Route::match(['put', 'patch'], 'user/{user}', 'Api\UserController@update')->name('user.update');
+Route::post('user/usersInGroup', 'Api\UserController@usersInGroup')->name('user.usersInGroup');
 
 Route::resource('task', 'Api\TaskController');
