@@ -23,10 +23,7 @@ class UserController extends Controller
         if ($user->role == constants('user.role.admin')) {
             return UserResource::collection(User::all())->response()->setStatusCode(Response::HTTP_OK);
         } else if ($user->role == constants('user.role.manager')) {
-            return response()->json(
-                ['data' => User::where('group_id', $user->id)->get(['id', 'name', 'email'])],
-                Response::HTTP_OK
-            );
+            return UserResource::collection(User::where('group_id', $user->id)->get())->response()->setStatusCode(Response::HTTP_OK);
         }
     }
 
