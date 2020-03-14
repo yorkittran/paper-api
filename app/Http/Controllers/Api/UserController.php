@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
@@ -17,19 +18,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $manager_id = request()->get('manager_id');
-        $terms      = request()->get('search');
 
-        if ($manager_id) {
-            return response()->json(
-                ['data' => User::where('group_id', $manager_id)->whereLike(['name', 'email', 'role'], $terms)->get(['name', 'email', 'role'])],
-                Response::HTTP_OK
-            );
-        }
-        return response()->json(
-            ['data' => User::whereLike(['name', 'email', 'role'], $terms)->get(['name', 'email', 'role', 'group_id'])],
-            Response::HTTP_OK
-        );
     }
 
     /**
@@ -54,10 +43,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return response()->json(
-            ['data' => User::select('name', 'email', 'role', 'group_id')->find($user)],
-            Response::HTTP_OK
-        );
+        return (new UserResource($user))->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
@@ -70,9 +56,7 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user)
     {
         $user->update($request->merge(['password' => Hash::make($request->get('password'))])->except([$request->get('password') ? '' : 'password']));
-        return response()->json(
-            Response::HTTP_OK
-        );
+        return response()->json(Response::HTTP_OK);
     }
 
     /**
@@ -84,9 +68,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
-        return response()->json(
-            Response::HTTP_NO_CONTENT
-        );
+        return response()->json(Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -97,7 +79,6 @@ class UserController extends Controller
     public function usersInGroup()
     {
         $manager_id = request()->get('manager_id');
-
         return response()->json(
             ['data' => User::where('group_id', $manager_id)->get(['id', 'name', 'email', 'role'])],
             Response::HTTP_OK

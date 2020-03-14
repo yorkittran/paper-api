@@ -33,4 +33,9 @@ class User extends Model implements Authenticatable
     {
         return $this->hasOne('App\Models\Group', 'manager_id')->withTrashed();
     }
+
+    public function inGroup()
+    {
+        return $this->belongsTo('App\Models\Group', 'group_id', 'id')->withTrashed();
+    }
 }

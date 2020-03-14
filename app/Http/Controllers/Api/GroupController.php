@@ -17,9 +17,7 @@ class GroupController extends Controller
      */
     public function index()
     {
-        $terms = request()->get('search');
-
-        return GroupResource::collection(Group::whereLike('name', $terms)->get());
+        return GroupResource::collection(Group::get());
     }
 
     /**
@@ -31,9 +29,7 @@ class GroupController extends Controller
     public function store(GroupRequest $request, Group $model)
     {
         $model->create($request->all());
-        return response()->json(
-            Response::HTTP_OK
-        );
+        return response()->json(Response::HTTP_OK);
     }
 
     /**
@@ -56,9 +52,7 @@ class GroupController extends Controller
     public function update(GroupRequest $request, Group $group)
     {
         $group->update($request->all());
-        return response()->json(
-            Response::HTTP_OK
-        );
+        return response()->json(Response::HTTP_OK);
     }
 
     /**
@@ -70,8 +64,6 @@ class GroupController extends Controller
     public function destroy(Group $group)
     {
         $group->delete();
-        return response()->json(
-            Response::HTTP_NO_CONTENT
-        );
+        return response()->json(Response::HTTP_NO_CONTENT);
     }
 }
