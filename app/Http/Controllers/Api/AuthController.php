@@ -35,9 +35,6 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $user = User::where('api_token', $request->header('Authorization'))->first();
-        $user->api_token = '';
-        $user->update();
-        return response()->json(['message' => 'Logout successfully'], Response::HTTP_OK);
+
     }
 }
