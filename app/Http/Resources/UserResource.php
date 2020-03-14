@@ -17,8 +17,8 @@ class UserResource extends JsonResource
         return [
             'name' => $this->name,
             'email' => $this->email,
-            'role' => $this->role,
-            'in_group_name' => $this->inGroup->name,
+            'role' => constants('user.role.' . $this->role),
+            'in_group_name' => $this->inGroup ? $this->inGroup->name : null,
         ];
     }
 }

@@ -13,14 +13,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:api')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 Route::post('login', 'Api\AuthController@login');
-Route::post('logout', 'Api\AuthController@logout')->middleware('auth:api');
+// Route::post('logout', 'Api\AuthController@logout')->middleware('auth:api');
 
-Route::middleware('auth.role:admin')->group(function () {
+Route::middleware('auth.role:Admin')->group(function () {
     // GroupController
     Route::get('group', 'Api\GroupController@index')->name('group.index');
     Route::post('group', 'Api\GroupController@store')->name('group.store');
@@ -28,15 +24,15 @@ Route::middleware('auth.role:admin')->group(function () {
     Route::match(['put', 'patch'], 'group/{group}', 'Api\GroupController@update')->name('group.update');
 
     // UserController
-    Route::get('user', 'Api\UserController@index')->name('user.index');
     Route::post('user', 'Api\UserController@store')->name('user.store');
     Route::delete('user/{user}', 'Api\UserController@delete')->name('user.delete');
     Route::match(['put', 'patch'], 'user/{user}', 'Api\UserController@update')->name('user.update');
-    Route::get('user/{user}', 'Api\UserController@show')->name('user.show');
 });
 
-Route::middleware('auth.role:admin,manager')->group(function () {
-    Route::post('user/usersInGroup', 'Api\UserController@usersInGroup')->name('user.usersInGroup');
+Route::middleware('auth.role:Admin,Manager')->group(function () {
+    // UserController
+    Route::get('user', 'Api\UserController@index')->name('user.index');
+    Route::get('user/{user}', 'Api\UserController@show')->name('user.show');
 });
 
 

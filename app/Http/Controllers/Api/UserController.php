@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
@@ -18,7 +19,15 @@ class UserController extends Controller
      */
     public function index()
     {
-
+        $user = JWTAuth::parseToken()->authenticate();
+        if ($user->role == constants('user.role.admin')) {
+            return UserResource::collection(User::all())->response()->setStatusCode(Response::HTTP_OK);
+        } else if ($user->role == constants('user.role.manager')) {
+            return response()->json(
+                ['data' => User::where('group_id', $user->id)->get(['id', 'name', 'email'])],
+                Response::HTTP_OK
+            );
+        }
     }
 
     /**
@@ -69,19 +78,5 @@ class UserController extends Controller
     {
         $user->delete();
         return response()->json(Response::HTTP_NO_CONTENT);
-    }
-
-    /**
-     * Display a listing of users in group belongs to manager
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function usersInGroup()
-    {
-        $manager_id = request()->get('manager_id');
-        return response()->json(
-            ['data' => User::where('group_id', $manager_id)->get(['id', 'name', 'email', 'role'])],
-            Response::HTTP_OK
-        );
     }
 }
