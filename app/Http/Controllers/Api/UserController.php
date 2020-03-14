@@ -97,10 +97,9 @@ class UserController extends Controller
     public function usersInGroup()
     {
         $manager_id = request()->get('manager_id');
-        $terms      = request()->get('terms');
 
         return response()->json(
-            ['data' => User::where('group_id', $manager_id)->whereLike(['name', 'email', 'role'], $terms)->get(['name', 'email', 'role'])],
+            ['data' => User::where('group_id', $manager_id)->get(['id', 'name', 'email', 'role'])],
             Response::HTTP_OK
         );
     }
