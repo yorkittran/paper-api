@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Str;
 
 class AuthController extends Controller
@@ -20,18 +21,11 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request)
     {
-        $email = $request->get('email');
-        $password = $request->get('password');
-
-        if (Auth::attempt(['email' => $email, 'password' => $password])) {
-            $user = Auth::user();
-            if (!$user->api_token) {
-                $user->api_token = Str::random(60);
-                $user->update();
-            }
-            return response()->json(['api_token' => $user->api_token], Response::HTTP_OK);
+        $credentials = $request->only('email', 'password');
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json(['message' => 'Email or password is incorrect.'], Response::HTTP_UNAUTHORIZED);
         }
-        return response()->json(['message' => 'Email or password is incorrect.'], Response::HTTP_UNAUTHORIZED);
+        return response()->json(['token' => $token], Response::HTTP_OK);
     }
 
     /**
