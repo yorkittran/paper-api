@@ -18,7 +18,7 @@ class CreateTasksTable extends Migration
             $table->string('name');
             $table->datetime('start_at');
             $table->datetime('end_at');
-            $table->string('status', 1)->default('0');
+            $table->integer('status');
             $table->string('description_assigned');
             $table->string('description_committed')->nullable();
             $table->string('comment')->nullable();
@@ -28,10 +28,10 @@ class CreateTasksTable extends Migration
             $table->datetime('approved_at')->nullable();
             $table->unsignedBigInteger('old_task')->nullable();
             $table->unsignedBigInteger('assigner_id')->nullable();
-            $table->unsignedBigInteger('assignee_id')->nullable();
+            $table->unsignedBigInteger('assignee_id');
             $table->unsignedBigInteger('approver_id')->nullable();
             $table->unsignedBigInteger('commenter_id')->nullable();
-            $table->unsignedBigInteger('creator_id')->nullable();
+            $table->unsignedBigInteger('creator_id');
             $table->unsignedBigInteger('updater_id')->nullable();
             $table->timestamps();
             $table->softDeletes();

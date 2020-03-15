@@ -35,5 +35,10 @@ Route::middleware('auth.role:Admin,Manager')->group(function () {
     Route::get('user/{user}', 'Api\UserController@show')->name('user.show');
 });
 
-
-Route::resource('task', 'Api\TaskController');
+Route::get('task', 'Api\TaskController@index')->name('task.index');
+Route::post('task', 'Api\TaskController@store')->name('task.store');
+Route::delete('task/{task}', 'Api\TaskController@delete')->name('task.delete');
+Route::match(['put', 'patch'], 'task/approve/{task}', 'Api\TaskController@approve')->name('task.approve');
+Route::match(['put', 'patch'], 'task/update/{task}', 'Api\TaskController@update')->name('task.update');
+Route::match(['put', 'patch'], 'task/commit/{task}', 'Api\TaskController@commit')->name('task.commit');
+Route::match(['put', 'patch'], 'task/evaluate/{task}', 'Api\TaskController@evaluate')->name('task.evaluate');

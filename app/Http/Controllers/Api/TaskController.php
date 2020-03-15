@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\TaskRequest;
+use App\Models\Task;
 
 class TaskController extends Controller
 {
@@ -20,33 +21,72 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\TaskRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request, Task $model)
     {
-        //
+        $model->create($request->all());
+        return response()->json(
+            Response::HTTP_CREATED
+        );
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  App\Models\Task $task
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Task $task)
     {
         //
     }
 
     /**
-     * Update the specified resource in storage.
+     * Approve the task.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \Illuminate\Http\TaskRequest  $request
+     * @param  App\Models\Task $task
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function approve(TaskRequest $request, Task $task)
+    {
+        //
+    }
+
+    /**
+     * Update the task.
+     *
+     * @param  \Illuminate\Http\TaskRequest  $request
+     * @param  App\Models\Task $task
+     * @return \Illuminate\Http\Response
+     */
+    public function update(TaskRequest $request, Task $task)
+    {
+        //
+    }
+
+    /**
+     * Commit the task.
+     *
+     * @param  \Illuminate\Http\TaskRequest  $request
+     * @param  App\Models\Task $task
+     * @return \Illuminate\Http\Response
+     */
+    public function commit(TaskRequest $request, Task $task)
+    {
+        //
+    }
+
+    /**
+     * Evaluate the task.
+     *
+     * @param  \Illuminate\Http\TaskRequest  $request
+     * @param  App\Models\Task $task
+     * @return \Illuminate\Http\Response
+     */
+    public function evaluate(TaskRequest $request, Task $task)
     {
         //
     }
@@ -54,10 +94,10 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  App\Models\Task $task
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Task $task)
     {
         //
     }

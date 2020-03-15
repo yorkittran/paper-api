@@ -57,4 +57,19 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo('App\Models\Group', 'group_id', 'id')->withTrashed();
     }
+
+    public function givenTask()
+    {
+        return $this->hasMany('App\Models\Task', 'assignee_id')->withTrashed();
+    }
+
+    public function handoutTask()
+    {
+        return $this->hasMany('App\Models\Task', 'assigner_id')->withTrashed();
+    }
+
+    public function approvedTask()
+    {
+        return $this->hasMany('App\Models\Task', 'approver_id')->withTrashed();
+    }
 }
