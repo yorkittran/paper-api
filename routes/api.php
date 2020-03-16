@@ -36,6 +36,7 @@ Route::middleware('auth.role:Admin,Manager')->group(function () {
 });
 
 Route::get('task', 'Api\TaskController@index')->name('task.index');
+Route::get('task/{task}', 'Api\TaskController@show')->name('task.show');
 Route::post('task', 'Api\TaskController@store')->name('task.store');
 Route::delete('task/{task}', 'Api\TaskController@delete')->name('task.delete');
 Route::match(['put', 'patch'], 'task/approve/{task}', 'Api\TaskController@approve')->name('task.approve');

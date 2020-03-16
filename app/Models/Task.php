@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
@@ -16,7 +17,7 @@ class Task extends Model
     protected $fillable = [
         'name', 'start_at', 'end_at', 'status', 'name', 'description_assigned', 'description_committed',
         'comment', 'mark', 'evaluated_at', 'committed_at', 'approved_at', 'old_task',
-        'assigner_id', 'assignee_id', 'approver_id', 'commenter_id', 'updater_id',
+        'assigner_id', 'assignee_id', 'approver_id', 'commenter_id', 'creator_id', 'updater_id',
     ];
 
     public function oldTask()

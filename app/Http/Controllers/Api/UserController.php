@@ -37,6 +37,7 @@ class UserController extends Controller
     {
         $model->create($request->merge(['password' => Hash::make($request->get('password'))])->all());
         return response()->json(
+            ['message' => 'Create user successfully.'],
             Response::HTTP_CREATED
         );
     }
@@ -62,7 +63,10 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user)
     {
         $user->update($request->merge(['password' => Hash::make($request->get('password'))])->except([$request->get('password') ? '' : 'password']));
-        return response()->json(Response::HTTP_OK);
+        return response()->json(
+            ['message' => 'Update user successfully.'],
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -74,6 +78,9 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
-        return response()->json(Response::HTTP_NO_CONTENT);
+        return response()->json(
+            ['message' => 'Delete user successfully'],
+            Response::HTTP_NO_CONTENT
+        );
     }
 }

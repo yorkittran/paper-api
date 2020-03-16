@@ -24,8 +24,6 @@ class TaskRequest extends FormRequest
      */
     public function rules()
     {
-        // dd($this->route());
-
         if (!$this->route()->task) {
             // Create request
             return [
@@ -34,12 +32,12 @@ class TaskRequest extends FormRequest
                 'end_at'               => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
                 'description_assigned' => 'required|string',
                 'old_task'             => 'integer|exists:tasks,id',
-                'assignee_id'          => 'required|integer|exists:users,id',
+                'assignee_id'          => 'integer|exists:users,id',
             ];
         } else {
             // Update request
-            // $action = Route::currentRouteAction();
-            switch ('a') {
+            $action = $this->route()->getActionMethod();
+            switch ($action) {
                 case 'approve':
                     return [
                         'status' => 'required|digits_between:1,2'
