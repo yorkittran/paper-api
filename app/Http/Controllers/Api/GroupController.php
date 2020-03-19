@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GroupRequest;
 use App\Http\Resources\GroupResource;
 use App\Models\Group;
+use App\Models\User;
 use Illuminate\Http\Response;
 
 class GroupController extends Controller
@@ -17,7 +18,7 @@ class GroupController extends Controller
      */
     public function index()
     {
-        return GroupResource::collection(Group::get());
+        return GroupResource::collection(Group::all());
     }
 
     /**
@@ -28,8 +29,13 @@ class GroupController extends Controller
      */
     public function store(GroupRequest $request, Group $model)
     {
-        $model->create($request->all());
-        return response()->json(Response::HTTP_OK);
+        $group_id = $model->create($request->all())->id;
+        User::where('group_id', $group_id)->update(['group_id' => null]);
+        User::whereIn('id', $request->get('selected_members'))->update(['group_id' => $group_id]);
+        return response()->json(
+            ['message' => 'Create group successfully'],
+            Response::HTTP_OK
+        );
     }
 
     /**
@@ -37,9 +43,9 @@ class GroupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Group $group)
     {
-
+        return (new GroupResource($group))->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
@@ -52,7 +58,12 @@ class GroupController extends Controller
     public function update(GroupRequest $request, Group $group)
     {
         $group->update($request->all());
-        return response()->json(Response::HTTP_OK);
+        User::where('group_id', $group->id)->update(['group_id' => null]);
+        User::whereIn('id', $request->get('selected_members'))->update(['group_id' => $group->id]);
+        return response()->json(
+            ['message' => 'Update group successfully'],
+            Response::HTTP_OK
+        );
     }
 
     /**

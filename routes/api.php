@@ -19,12 +19,15 @@ Route::post('login', 'Api\AuthController@login');
 Route::middleware('auth.role:Admin')->group(function () {
     // GroupController
     Route::get('group', 'Api\GroupController@index')->name('group.index');
+    Route::get('group/{group}', 'Api\GroupController@show')->name('group.show');
     Route::post('group', 'Api\GroupController@store')->name('group.store');
     Route::delete('group/{group}', 'Api\GroupController@delete')->name('group.delete');
     Route::match(['put', 'patch'], 'group/{group}', 'Api\GroupController@update')->name('group.update');
 
     // UserController
     Route::post('user', 'Api\UserController@store')->name('user.store');
+    Route::get('user/managerAvailabled', 'Api\UserController@getListOfManagerAvailabled')->name('group.managerAvailabled');
+    Route::get('user/memberAvailabled', 'Api\UserController@getListOfMemberAvailabled')->name('group.memberAvailabled');
     Route::delete('user/{user}', 'Api\UserController@delete')->name('user.delete');
     Route::match(['put', 'patch'], 'user/{user}', 'Api\UserController@update')->name('user.update');
 });
