@@ -19,7 +19,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-        //
+        return TaskResource::collection(Task::all())
+                ->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
@@ -59,6 +60,24 @@ class TaskController extends Controller
     }
 
     /**
+     * Display a listing of the approved tasks.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function pending()
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        if ($user->role == constants('user.role.admin')) {
+            return TaskResource::collection(Task::where('status', constants('task.status.pending_approval'))->get())
+                ->response()->setStatusCode(Response::HTTP_OK);
+        } else {
+            $members_id = User::where('group_id', $user->group->id)->get(['id'])->toArray();
+            return TaskResource::collection(Task::where('status', constants('task.status.pending_approval'))->whereIn('assignee_id', $members_id)->get())
+                ->response()->setStatusCode(Response::HTTP_OK);
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\TaskRequest  $request
@@ -77,7 +96,10 @@ class TaskController extends Controller
             'assignee_id' => $assignee_id,
             'creator_id'  => $user->id,
         ])->except([$isMember ? 'assigner_id' : '']));
-        return response()->json(Response::HTTP_CREATED);
+        return response()->json(
+            ['message' => 'Create task successfully'],
+            Response::HTTP_CREATED
+        );
     }
 
     /**

@@ -26,6 +26,7 @@ Route::middleware('auth.role:Admin')->group(function () {
 
     // UserController
     Route::post('user', 'Api\UserController@store')->name('user.store');
+    Route::get('user/exceptSelf', 'Api\UserController@getAllUsersExceptSelf')->name('user.exceptSelf');
     Route::get('user/managerAvailabled', 'Api\UserController@getListOfManagerAvailabled')->name('group.managerAvailabled');
     Route::get('user/memberAvailabled', 'Api\UserController@getListOfMemberAvailabled')->name('group.memberAvailabled');
     Route::delete('user/{user}', 'Api\UserController@delete')->name('user.delete');
@@ -36,9 +37,13 @@ Route::middleware('auth.role:Admin,Manager')->group(function () {
     // UserController
     Route::get('user', 'Api\UserController@index')->name('user.index');
     Route::get('user/{user}', 'Api\UserController@show')->name('user.show');
+
+    // TaskController
+    Route::get('task', 'Api\TaskController@index')->name('task.index');
+    Route::get('task/pending', 'Api\TaskController@pending')->name('task.pending');
+    Route::get('task/handout', 'Api\TaskController@handout')->name('task.handout');
 });
 
-Route::get('task', 'Api\TaskController@index')->name('task.index');
 Route::get('task/{task}', 'Api\TaskController@show')->name('task.show');
 Route::post('task', 'Api\TaskController@store')->name('task.store');
 Route::delete('task/{task}', 'Api\TaskController@delete')->name('task.delete');

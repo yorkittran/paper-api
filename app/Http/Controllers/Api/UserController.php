@@ -29,6 +29,17 @@ class UserController extends Controller
     }
 
     /**
+     * Display a listing of the resource except self.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getAllUsersExceptSelf()
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        return UserResource::collection(User::all()->except($user->id))->response()->setStatusCode(Response::HTTP_OK);
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\UserRequest  $request
