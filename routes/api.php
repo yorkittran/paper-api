@@ -21,15 +21,14 @@ Route::middleware('auth.role:Admin')->group(function () {
     Route::get('group', 'Api\GroupController@index')->name('group.index');
     Route::get('group/{group}', 'Api\GroupController@show')->name('group.show');
     Route::post('group', 'Api\GroupController@store')->name('group.store');
-    Route::delete('group/{group}', 'Api\GroupController@delete')->name('group.delete');
+    Route::delete('group/{group}', 'Api\GroupController@destroy')->name('group.destroy');
     Route::match(['put', 'patch'], 'group/{group}', 'Api\GroupController@update')->name('group.update');
 
     // UserController
     Route::post('user', 'Api\UserController@store')->name('user.store');
-    Route::get('user/exceptSelf', 'Api\UserController@getAllUsersExceptSelf')->name('user.exceptSelf');
-    Route::get('user/managerAvailabled', 'Api\UserController@getListOfManagerAvailabled')->name('group.managerAvailabled');
-    Route::get('user/memberAvailabled', 'Api\UserController@getListOfMemberAvailabled')->name('group.memberAvailabled');
-    Route::delete('user/{user}', 'Api\UserController@delete')->name('user.delete');
+    Route::get('user/members', 'Api\UserController@members')->name('user.members');
+    Route::get('user/managers', 'Api\UserController@managers')->name('user.managers');
+    Route::delete('user/{user}', 'Api\UserController@destroy')->name('user.destroy');
     Route::match(['put', 'patch'], 'user/{user}', 'Api\UserController@update')->name('user.update');
 });
 
@@ -40,14 +39,22 @@ Route::middleware('auth.role:Admin,Manager')->group(function () {
 
     // TaskController
     Route::get('task', 'Api\TaskController@index')->name('task.index');
-    Route::get('task/pending', 'Api\TaskController@pending')->name('task.pending');
-    Route::get('task/handout', 'Api\TaskController@handout')->name('task.handout');
+    Route::match(['put', 'patch'], 'task/approve/{task}', 'Api\TaskController@approve')->name('task.approve');
+    Route::match(['put', 'patch'], 'task/reject/{task}', 'Api\TaskController@reject')->name('task.reject');
+    Route::match(['put', 'patch'], 'task/evaluate/{task}', 'Api\TaskController@evaluate')->name('task.evaluate');
 });
 
+Route::middleware('auth.role:Manager,Member')->group(function () {
+    // TaskController
+    Route::get('task/given', 'Api\TaskController@given')->name('task.given');
+    Route::match(['put', 'patch'], 'task/commit/{task}', 'Api\TaskController@commit')->name('task.commit');
+});
+
+// UserController
+Route::get('profile', 'Api\UserController@profile')->name('user.profile');
+
+// TaskController
 Route::get('task/{task}', 'Api\TaskController@show')->name('task.show');
 Route::post('task', 'Api\TaskController@store')->name('task.store');
-Route::delete('task/{task}', 'Api\TaskController@delete')->name('task.delete');
-Route::match(['put', 'patch'], 'task/approve/{task}', 'Api\TaskController@approve')->name('task.approve');
+Route::delete('task/{task}', 'Api\TaskController@destroy')->name('task.destroy');
 Route::match(['put', 'patch'], 'task/update/{task}', 'Api\TaskController@update')->name('task.update');
-Route::match(['put', 'patch'], 'task/commit/{task}', 'Api\TaskController@commit')->name('task.commit');
-Route::match(['put', 'patch'], 'task/evaluate/{task}', 'Api\TaskController@evaluate')->name('task.evaluate');

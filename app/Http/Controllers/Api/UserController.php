@@ -7,7 +7,6 @@ use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Group;
 use App\Models\User;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -22,21 +21,50 @@ class UserController extends Controller
     {
         $user = JWTAuth::parseToken()->authenticate();
         if ($user->role == constants('user.role.admin')) {
-            return UserResource::collection(User::all())->response()->setStatusCode(Response::HTTP_OK);
+            return response()->json([
+                'data' => User::where('id', '!=', $user->id)->orderBy('role')->orderBy('name')->get(['id', 'name', 'email', 'role'])
+            ]);
         } else if ($user->role == constants('user.role.manager')) {
-            return UserResource::collection(User::where('group_id', $user->group->id)->get())->response()->setStatusCode(Response::HTTP_OK);
+            return response()->json([
+                'data' => User::where('group_id', $user->group->id)->orderBy('name')->get(['id', 'name', 'email'])
+            ]);
         }
     }
 
     /**
-     * Display a listing of the resource except self.
+     * Display the specified resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function getAllUsersExceptSelf()
+    public function profile()
     {
         $user = JWTAuth::parseToken()->authenticate();
-        return UserResource::collection(User::all()->except($user->id))->response()->setStatusCode(Response::HTTP_OK);
+        return (new UserResource($user));
+    }
+
+    /**
+     * Display a listing of the manager not has any group.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function managers()
+    {
+        $managers = Group::get('manager_id')->toArray();
+        return response()->json([
+            'data' => User::where('role', constants('user.role.manager'))->whereNotIn('id', $managers)->get(['id', 'name'])
+        ]);
+    }
+
+    /**
+     * Display a listing of the member not belong any group.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function members()
+    {
+        return response()->json([
+            'data' => User::where('role', constants('user.role.member'))->where('group_id', null)->get(['id', 'name'])
+        ]);
     }
 
     /**
@@ -48,10 +76,9 @@ class UserController extends Controller
     public function store(UserRequest $request, User $model)
     {
         $model->create($request->merge(['password' => Hash::make($request->get('password'))])->all());
-        return response()->json(
-            ['message' => 'Create user successfully'],
-            Response::HTTP_CREATED
-        );
+        return response()->json([
+            'message' => 'Create user successfully'
+        ]);
     }
 
     /**
@@ -62,7 +89,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return (new UserResource($user))->response()->setStatusCode(Response::HTTP_OK);
+        return new UserResource($user);
     }
 
     /**
@@ -75,10 +102,9 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user)
     {
         $user->update($request->merge(['password' => Hash::make($request->get('password'))])->except([$request->get('password') ? '' : 'password']));
-        return response()->json(
-            ['message' => 'Update user successfully'],
-            Response::HTTP_OK
-        );
+        return response()->json([
+            'message' => 'Update user successfully'
+        ]);
     }
 
     /**
@@ -90,30 +116,8 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
-        return response()->json(
-            ['message' => 'Delete user successfully'],
-            Response::HTTP_NO_CONTENT
-        );
-    }
-
-    /**
-     * Display a listing of the manager not manage any group.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getListOfManagerAvailabled()
-    {
-        $manager_ids = Group::get('manager_id')->toArray();
-        return UserResource::collection(User::where('role', constants('user.role.manager'))->whereNotIn('id', $manager_ids)->get())->response()->setStatusCode(Response::HTTP_OK);
-    }
-
-    /**
-     * Display a listing of the member not belong any group.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getListOfMemberAvailabled()
-    {
-        return UserResource::collection(User::where('role', constants('user.role.member'))->where('group_id', null)->get())->response()->setStatusCode(Response::HTTP_OK);
+        return response()->json([
+            'message' => 'Delete user successfully'
+        ]);
     }
 }

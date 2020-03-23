@@ -7,7 +7,7 @@ use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Http\Response;
+use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class TaskController extends Controller
@@ -19,8 +19,13 @@ class TaskController extends Controller
      */
     public function index()
     {
-        return TaskResource::collection(Task::all())
-                ->response()->setStatusCode(Response::HTTP_OK);
+        $user = JWTAuth::parseToken()->authenticate();
+        if ($user->role == constants('user.role.admin')) {
+            return TaskResource::collection(Task::orderByDesc('updated_at')->get());
+        } else if ($user->role == constants('user.role.manager')) {
+            $member_in_group = User::where('group_id', $user->group->id)->get('id');
+            return TaskResource::collection(Task::whereIn('assignee_id', $member_in_group)->orderByDesc('updated_at')->get());
+        }
     }
 
     /**
@@ -31,50 +36,7 @@ class TaskController extends Controller
     public function given()
     {
         $user = JWTAuth::parseToken()->authenticate();
-        return TaskResource::collection(Task::where('assignee_id', $user->id)->get())
-                ->response()->setStatusCode(Response::HTTP_OK);
-    }
-
-    /**
-     * Display a listing of the handout tasks.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function handout()
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-        return TaskResource::collection(Task::where('assigner_id', $user->id)->get())
-                ->response()->setStatusCode(Response::HTTP_OK);
-    }
-
-    /**
-     * Display a listing of the approved tasks.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function approved()
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-        return TaskResource::collection(Task::where('approver_id', $user->id)->get())
-                ->response()->setStatusCode(Response::HTTP_OK);
-    }
-
-    /**
-     * Display a listing of the approved tasks.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function pending()
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-        if ($user->role == constants('user.role.admin')) {
-            return TaskResource::collection(Task::where('status', constants('task.status.pending_approval'))->get())
-                ->response()->setStatusCode(Response::HTTP_OK);
-        } else {
-            $members_id = User::where('group_id', $user->group->id)->get(['id'])->toArray();
-            return TaskResource::collection(Task::where('status', constants('task.status.pending_approval'))->whereIn('assignee_id', $members_id)->get())
-                ->response()->setStatusCode(Response::HTTP_OK);
-        }
+        return TaskResource::collection(Task::where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
     }
 
     /**
@@ -88,18 +50,16 @@ class TaskController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $isMember = $user->role == constants('user.role.member');
         $assignee_id = $isMember ? $user->id : $request->get('assignee_id');
-        $status = $isMember ? 0 : 3;
-
+        $status = $isMember ? constants('task.status.pending_approval') : (date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started'));
         $model->create($request->merge([
             'status'      => $status,
             'assigner_id' => $user->id,
             'assignee_id' => $assignee_id,
             'creator_id'  => $user->id,
         ])->except([$isMember ? 'assigner_id' : '']));
-        return response()->json(
-            ['message' => 'Create task successfully'],
-            Response::HTTP_CREATED
-        );
+        return response()->json([
+            'message' => 'Create task successfully'
+        ]);
     }
 
     /**
@@ -110,22 +70,21 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        return (new TaskResource($task))->response()->setStatusCode(Response::HTTP_OK);
+        return (new TaskResource($task));
     }
 
     /**
      * Approve the task.
      *
-     * @param  \Illuminate\Http\TaskRequest  $request
+     * @param  \Illuminate\Http\Request  $request
      * @param  App\Models\Task $task
      * @return \Illuminate\Http\Response
      */
-    public function approve(TaskRequest $request, Task $task)
+    public function approve(Request $request, Task $task)
     {
         if ($task->status != constants('task.status.pending_approval')) {
-            return response()->json(
-                ['message' => 'This task cannot be approved'],
-                Response::HTTP_OK
+            return response()->json([
+                'message' => 'This task cannot be approved'],
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
@@ -133,8 +92,37 @@ class TaskController extends Controller
             'approver_id' => $user->id,
             'approved_at' => date("Y-m-d H:i:s"),
             'updater_id'  => $user->id,
+            'status'     => date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started')
         ])->all());
-        return response()->json(Response::HTTP_OK);
+        return response()->json([
+            'message' => 'Approve task successfully'
+        ]);
+    }
+
+    /**
+     * Reject the task.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Models\Task $task
+     * @return \Illuminate\Http\Response
+     */
+    public function reject(Request $request, Task $task)
+    {
+        if ($task->status != constants('task.status.pending_approval')) {
+            return response()->json([
+                'message' => 'This task cannot be rejected'],
+            );
+        }
+        $user = JWTAuth::parseToken()->authenticate();
+        $task->update($request->merge([
+            'updater_id'  => $user->id,
+            'approver_id' => $user->id,
+            'approved_at' => date("Y-m-d H:i:s"),
+            'status'      => constants('task.status.rejected')
+        ])->all());
+        return response()->json([
+            'message' => 'Reject task successfully'
+        ]);
     }
 
     /**
@@ -146,18 +134,19 @@ class TaskController extends Controller
      */
     public function update(TaskRequest $request, Task $task)
     {
-        if ($task->status != constants('task.status.not_stated')) {
-            return response()->json(
-                ['message' => 'This task cannot be updated'],
-                Response::HTTP_OK
+        if ($task->status != constants('task.status.not_started')) {
+            return response()->json([
+                'message' => 'This task cannot be updated'],
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
         $task->update($request->merge([
             'updater_id' => $user->id,
-            'status'     => constants('task.status.not_stated')
-        ])->except([$request->get('start_at') < date("Y-m-d H:i:s") ? '' : 'status']));
-        return response()->json(Response::HTTP_OK);
+            'status'     => date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started')
+        ])->all());
+        return response()->json([
+            'message' => 'Update task successfully'
+        ]);
     }
 
     /**
@@ -170,9 +159,8 @@ class TaskController extends Controller
     public function commit(TaskRequest $request, Task $task)
     {
         if ($task->status != constants('task.status.ongoing')) {
-            return response()->json(
-                ['message' => 'This task cannot be commit'],
-                Response::HTTP_OK
+            return response()->json([
+                'message' => 'This task cannot be commit'],
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
@@ -181,7 +169,6 @@ class TaskController extends Controller
             'committed_at' => date("Y-m-d H:i:s"),
             'status'       => constants('task.status.committed')
         ])->except([$request->get('start_at') < date("Y-m-d H:i:s") ? '' : 'status']));
-        return response()->json(Response::HTTP_OK);
     }
 
     /**
@@ -194,9 +181,8 @@ class TaskController extends Controller
     public function evaluate(TaskRequest $request, Task $task)
     {
         if ($task->status != constants('task.status.committed')) {
-            return response()->json(
-                ['message' => 'This task cannot be evaluated'],
-                Response::HTTP_OK
+            return response()->json([
+                'message' => 'This task cannot be evaluated'],
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
@@ -205,7 +191,6 @@ class TaskController extends Controller
             'evaluated_at' => '',
             'updater_id'   => $user->id,
         ])->all());
-        return response()->json(Response::HTTP_OK);
     }
 
     /**
@@ -216,6 +201,9 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        $task->delete();
+        return response()->json([
+            'message' => 'Delete task successfully'
+        ]);
     }
 }

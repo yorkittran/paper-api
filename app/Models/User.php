@@ -10,6 +10,8 @@ class User extends Authenticatable implements JWTSubject
 {
     use SoftDeletes;
 
+    protected $table = 'users';
+
     /**
      * The attributes that are mass assignable.
      *

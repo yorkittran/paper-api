@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Routing\Route;
 
 class TaskRequest extends FormRequest
 {
@@ -38,19 +37,14 @@ class TaskRequest extends FormRequest
             // Update request
             $action = $this->route()->getActionMethod();
             switch ($action) {
-                case 'approve':
-                    return [
-                        'status' => 'required|digits_between:1,2'
-                    ];
-                break;
                 case 'update':
                     return [
-                        'name'                 => 'required|string|unique:tasks|min:6',
-                        'start_at'             => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:today',
+                        'name'                 => 'required|string|min:6',
+                        'start_at'             => 'required|date_format:"Y-m-d H:i:s"',
                         'end_at'               => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
                         'description_assigned' => 'required|string',
                         'old_task'             => 'integer|exists:tasks,id',
-                        'assignee_id'          => 'required|integer|exists:user,id',
+                        'assignee_id'          => 'required|integer|exists:users,id',
                     ];
                 break;
                 case 'commit':
@@ -64,8 +58,6 @@ class TaskRequest extends FormRequest
                         'mark'    => 'required',
                         'status'  => 'required|digits_between:6,7',
                     ];
-                break;
-                default:
                 break;
             }
         }

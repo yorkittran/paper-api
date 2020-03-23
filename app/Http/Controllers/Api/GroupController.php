@@ -32,10 +32,9 @@ class GroupController extends Controller
         $group_id = $model->create($request->all())->id;
         User::where('group_id', $group_id)->update(['group_id' => null]);
         User::whereIn('id', $request->get('selected_members'))->update(['group_id' => $group_id]);
-        return response()->json(
-            ['message' => 'Create group successfully'],
-            Response::HTTP_OK
-        );
+        return response()->json([
+            'message' => 'Create group successfully'
+        ]);
     }
 
     /**
@@ -45,7 +44,7 @@ class GroupController extends Controller
      */
     public function show(Group $group)
     {
-        return (new GroupResource($group))->response()->setStatusCode(Response::HTTP_OK);
+        return (new GroupResource($group));
     }
 
     /**
@@ -60,10 +59,9 @@ class GroupController extends Controller
         $group->update($request->all());
         User::where('group_id', $group->id)->update(['group_id' => null]);
         User::whereIn('id', $request->get('selected_members'))->update(['group_id' => $group->id]);
-        return response()->json(
-            ['message' => 'Update group successfully'],
-            Response::HTTP_OK
-        );
+        return response()->json([
+            'message' => 'Update group successfully'
+        ]);
     }
 
     /**
@@ -75,6 +73,8 @@ class GroupController extends Controller
     public function destroy(Group $group)
     {
         $group->delete();
-        return response()->json(Response::HTTP_NO_CONTENT);
+        return response()->json([
+            'message' => 'Delete group successfully'
+        ]);
     }
 }

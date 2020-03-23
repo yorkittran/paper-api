@@ -26,7 +26,7 @@ return [
             'approved'         => '1',
             'rejected'         => '2',
             'not_started'      => '3',
-            'ongoin'           => '4',
+            'ongoing'          => '4',
             'committed'        => '5',
             'completed'        => '6',
             'incompleted'      => '7',
