@@ -26,12 +26,11 @@ class TaskRequest extends FormRequest
         if (!$this->route()->task) {
             // Create request
             return [
-                'name'                 => 'required|string|unique:tasks|min:6',
-                'start_at'             => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:today',
-                'end_at'               => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
+                'name'        => 'required|string|unique:tasks|min:6',
+                'start_at'    => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:today',
+                'end_at'      => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
                 'description' => 'required|string',
-                'old_task'             => 'integer|exists:tasks,id',
-                'assignee_id'          => 'integer|exists:users,id',
+                'old_task'    => 'integer|exists:tasks,id',
             ];
         } else {
             // Update request
@@ -39,12 +38,12 @@ class TaskRequest extends FormRequest
             switch ($action) {
                 case 'update':
                     return [
-                        'name'                 => 'required|string|min:6',
-                        'start_at'             => 'required|date_format:"Y-m-d H:i:s"',
-                        'end_at'               => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
+                        'name'        => 'required|string|min:6',
+                        'start_at'    => 'required|date_format:"Y-m-d H:i:s"',
+                        'end_at'      => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
                         'description' => 'required|string',
-                        'old_task'             => 'integer|exists:tasks,id',
-                        'assignee_id'          => 'required|integer|exists:users,id',
+                        'old_task'    => 'integer|exists:tasks,id',
+                        'assignee_id' => 'required|integer|exists:users,id',
                     ];
                 break;
                 case 'commit':

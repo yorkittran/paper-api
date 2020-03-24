@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Notification;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class TaskController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      *
@@ -27,6 +30,24 @@ class TaskController extends Controller
             return TaskResource::collection(Task::whereIn('assignee_id', $member_in_group)->orWhere('assignee_id', $user->id)->orderByDesc('updated_at')->get());
         } else if ($user->role == constants('user.role.member')) {
             return TaskResource::collection(Task::where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
+        }
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function old()
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        if ($user->role == constants('user.role.admin')) {
+            return TaskResource::collection(Task::whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->orderByDesc('updated_at')->get());
+        } else if ($user->role == constants('user.role.manager')) {
+            $member_in_group = User::where('group_id', $user->group->id)->get('id')->toArray();
+            return TaskResource::collection(Task::whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->whereIn('assignee_id', $member_in_group)->orWhere('assignee_id', $user->id)->orderByDesc('updated_at')->get());
+        } else if ($user->role == constants('user.role.member')) {
+            return TaskResource::collection(Task::whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
         }
     }
 
@@ -48,6 +69,47 @@ class TaskController extends Controller
             'assignee_id' => $assignee_id,
             'creator_id'  => $user->id,
         ])->except([$isMember ? 'assigner_id' : '']));
+
+        // Create push data
+        $to = [];
+        $title =  $request->get('name') . ' | ' . constants('task.status.' . $status) . ' Task';
+        $body = '';
+        if ($isMember) {
+            $admin = User::where('role', constants('user.role.admin'))->first();
+            $to = [
+                $user->inGroup->manager->push_token,
+                $admin->push_token,
+            ];
+            $body  = 'New task has been created by ' . $user->name . ' and waiting for approval';
+
+            // Create notification record to database
+            Notification::create([
+                'user_id' => $user->inGroup->manager->id,
+                'title'   => $title,
+                'content' => $body,
+            ]);
+            Notification::create([
+                'user_id' => $admin->id,
+                'title'   => $title,
+                'content' => $body,
+            ]);
+        } else {
+            $to = [
+                User::where('id', $assignee_id)->get('push_token')->first()->push_token,
+            ];
+            $body = 'You have been assigned to a ' . constants('task.status.' . $status) . ' task by ' . $user->name;
+
+            // Create notification record to database
+            Notification::create([
+                'user_id' => $assignee_id,
+                'title'   => $title,
+                'content' => $body,
+            ]);
+        }
+
+        // Push notification
+        $this->pushToExpo($to, $body, $title);
+
         return response()->json([
             'message' => 'Create task successfully'
         ]);

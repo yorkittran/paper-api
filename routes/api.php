@@ -57,6 +57,7 @@ Route::match(['put', 'patch'], 'notification/{notification}', 'Api\NotificationC
 
 // TaskController
 Route::get('task', 'Api\TaskController@index')->name('task.index');
+Route::get('task/old', 'Api\TaskController@old')->name('task.old');
 Route::get('task/{task}', 'Api\TaskController@show')->name('task.show');
 Route::post('task', 'Api\TaskController@store')->name('task.store');
 Route::delete('task/{task}', 'Api\TaskController@destroy')->name('task.destroy');
