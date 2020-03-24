@@ -25,9 +25,15 @@ class UserController extends Controller
                 'data' => User::where('id', '!=', $user->id)->orderBy('role')->orderBy('name')->get(['id', 'name', 'email', 'role'])
             ]);
         } else if ($user->role == constants('user.role.manager')) {
-            return response()->json([
+            if (request()->get('include_manager')) {
+              return response()->json([
+                  'data' => User::where('group_id', $user->group->id)->orWhere('id', $user->id)->orderBy('name')->get(['id', 'name', 'email', 'role'])
+              ]);
+            } else {
+              return response()->json([
                 'data' => User::where('group_id', $user->group->id)->orderBy('name')->get(['id', 'name', 'email'])
-            ]);
+              ]);
+            }
         }
     }
 

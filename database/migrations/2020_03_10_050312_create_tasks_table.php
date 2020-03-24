@@ -19,8 +19,9 @@ class CreateTasksTable extends Migration
             $table->datetime('start_at');
             $table->datetime('end_at');
             $table->integer('status');
-            $table->string('description_assigned');
-            $table->string('description_committed')->nullable();
+            $table->string('description');
+            $table->string('commit_message')->nullable();
+            $table->string('attached_file')->nullable();
             $table->string('comment')->nullable();
             $table->float('mark')->nullable();
             $table->datetime('evaluated_at')->nullable();

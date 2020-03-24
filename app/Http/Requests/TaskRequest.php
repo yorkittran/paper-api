@@ -29,7 +29,7 @@ class TaskRequest extends FormRequest
                 'name'                 => 'required|string|unique:tasks|min:6',
                 'start_at'             => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:today',
                 'end_at'               => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
-                'description_assigned' => 'required|string',
+                'description' => 'required|string',
                 'old_task'             => 'integer|exists:tasks,id',
                 'assignee_id'          => 'integer|exists:users,id',
             ];
@@ -42,21 +42,21 @@ class TaskRequest extends FormRequest
                         'name'                 => 'required|string|min:6',
                         'start_at'             => 'required|date_format:"Y-m-d H:i:s"',
                         'end_at'               => 'required|date_format:"Y-m-d H:i:s"|after_or_equal:start_at',
-                        'description_assigned' => 'required|string',
+                        'description' => 'required|string',
                         'old_task'             => 'integer|exists:tasks,id',
                         'assignee_id'          => 'required|integer|exists:users,id',
                     ];
                 break;
                 case 'commit':
                     return [
-                        'description_committed' => 'required|string'
+                        'commit_message' => 'required|string'
                     ];
                 break;
                 case 'evaluate':
                     return [
-                        'comment' => 'required|string',
+                        'comment' => 'required',
                         'mark'    => 'required',
-                        'status'  => 'required|digits_between:6,7',
+                        'status'  => 'required',
                     ];
                 break;
             }

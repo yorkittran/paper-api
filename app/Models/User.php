@@ -10,15 +10,13 @@ class User extends Authenticatable implements JWTSubject
 {
     use SoftDeletes;
 
-    protected $table = 'users';
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'role', 'password'
+        'name', 'email', 'role', 'password', 'push_token'
     ];
 
     /**
@@ -48,6 +46,11 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function hasNotifications()
+    {
+        return $this->hasMany('App\Models\Notification')->orderByDesc('updated_at');
     }
 
     public function group()

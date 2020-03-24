@@ -23,20 +23,11 @@ class TaskController extends Controller
         if ($user->role == constants('user.role.admin')) {
             return TaskResource::collection(Task::orderByDesc('updated_at')->get());
         } else if ($user->role == constants('user.role.manager')) {
-            $member_in_group = User::where('group_id', $user->group->id)->get('id');
-            return TaskResource::collection(Task::whereIn('assignee_id', $member_in_group)->orderByDesc('updated_at')->get());
+            $member_in_group = User::where('group_id', $user->group->id)->get('id')->toArray();
+            return TaskResource::collection(Task::whereIn('assignee_id', $member_in_group)->orWhere('assignee_id', $user->id)->orderByDesc('updated_at')->get());
+        } else if ($user->role == constants('user.role.member')) {
+            return TaskResource::collection(Task::where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
         }
-    }
-
-    /**
-     * Display a listing of the given tasks.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function given()
-    {
-        $user = JWTAuth::parseToken()->authenticate();
-        return TaskResource::collection(Task::where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
     }
 
     /**
@@ -169,6 +160,9 @@ class TaskController extends Controller
             'committed_at' => date("Y-m-d H:i:s"),
             'status'       => constants('task.status.committed')
         ])->except([$request->get('start_at') < date("Y-m-d H:i:s") ? '' : 'status']));
+        return response()->json([
+            'message' => 'Commit task successfully'
+        ]);
     }
 
     /**
@@ -188,9 +182,12 @@ class TaskController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $task->update($request->merge([
             'commenter_id' => $user->id,
-            'evaluated_at' => '',
+            'evaluated_at' => date("Y-m-d H:i:s"),
             'updater_id'   => $user->id,
         ])->all());
+        return response()->json([
+            'message' => 'Evaluate task successfully'
+        ]);
     }
 
     /**

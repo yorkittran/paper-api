@@ -7,7 +7,6 @@ use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Str;
 
 class AuthController extends Controller
 {
@@ -24,6 +23,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email or password is incorrect.'], Response::HTTP_UNAUTHORIZED);
         }
         $user = User::where('email', $request->get('email'))->first();
+        $user->update($request->only('push_token'));
         return response()->json(['token' => $token, 'role' => constants('user.role.' . $user->role)], Response::HTTP_OK);
     }
 }

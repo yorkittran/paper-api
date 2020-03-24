@@ -15,8 +15,8 @@ class Task extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'start_at', 'end_at', 'status', 'name', 'description_assigned', 'description_committed',
-        'comment', 'mark', 'evaluated_at', 'committed_at', 'approved_at', 'old_task',
+        'name', 'start_at', 'end_at', 'status', 'name', 'description', 'commit_message',
+        'attached_file', 'comment', 'mark', 'evaluated_at', 'committed_at', 'approved_at', 'old_task',
         'assigner_id', 'assignee_id', 'approver_id', 'commenter_id', 'creator_id', 'updater_id',
     ];
 
@@ -40,9 +40,9 @@ class Task extends Model
         return $this->belongsTo('App\Models\User', 'approver_id', 'id')->withTrashed();
     }
 
-    public function commeter()
+    public function commenter()
     {
-        return $this->belongsTo('App\Models\User', 'commeter_id', 'id')->withTrashed();
+        return $this->belongsTo('App\Models\User', 'commenter_id', 'id')->withTrashed();
     }
 
     public function creator()
