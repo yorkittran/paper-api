@@ -18,10 +18,9 @@ class CreateGroupsTable extends Migration
             $table->unsignedBigInteger('manager_id');
             $table->string('name')->unique();
             $table->timestamps();
-            $table->softDeletes();
 
             // Foreign keys
-            $table->foreign('manager_id')->references('id')->on('users');
+            $table->foreign('manager_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

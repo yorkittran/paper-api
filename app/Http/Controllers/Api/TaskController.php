@@ -41,13 +41,14 @@ class TaskController extends Controller
     public function old()
     {
         $user = JWTAuth::parseToken()->authenticate();
+        $old_task_picked = Task::where('old_task', '!=', null)->get('old_task')->toArray();
         if ($user->role == constants('user.role.admin')) {
-            return TaskResource::collection(Task::whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->orderByDesc('updated_at')->get());
+            return TaskResource::collection(Task::whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->orderByDesc('updated_at')->get());
         } else if ($user->role == constants('user.role.manager')) {
             $member_in_group = User::where('group_id', $user->group->id)->get('id')->toArray();
-            return TaskResource::collection(Task::whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->whereIn('assignee_id', $member_in_group)->orWhere('assignee_id', $user->id)->orderByDesc('updated_at')->get());
+            return TaskResource::collection(Task::whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->whereIn('assignee_id', $member_in_group)->orWhere('assignee_id', $user->id)->orderByDesc('updated_at')->get());
         } else if ($user->role == constants('user.role.member')) {
-            return TaskResource::collection(Task::whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
+            return TaskResource::collection(Task::whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
         }
     }
 
@@ -76,10 +77,8 @@ class TaskController extends Controller
         $body = '';
         if ($isMember) {
             $admin = User::where('role', constants('user.role.admin'))->first();
-            $to = [
-                $user->inGroup->manager->push_token,
-                $admin->push_token,
-            ];
+            if ($user->inGroup->manager->push_token) array_push($to, $user->inGroup->manager->push_token);
+            if ($admin->push_token) array_push($to, $admin->push_token);
             $body  = 'New task has been created by ' . $user->name . ' and waiting for approval';
 
             // Create notification record to database
@@ -94,9 +93,8 @@ class TaskController extends Controller
                 'content' => $body,
             ]);
         } else {
-            $to = [
-                User::where('id', $assignee_id)->get('push_token')->first()->push_token,
-            ];
+            $assignee = User::where('id', $assignee_id)->get('push_token')->first();
+            if ($assignee->push_token) array_push($to, $assignee->push_token);
             $body = 'You have been assigned to a ' . constants('task.status.' . $status) . ' task by ' . $user->name;
 
             // Create notification record to database
@@ -106,7 +104,6 @@ class TaskController extends Controller
                 'content' => $body,
             ]);
         }
-
         // Push notification
         $this->pushToExpo($to, $body, $title);
 

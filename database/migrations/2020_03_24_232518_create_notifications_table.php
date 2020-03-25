@@ -20,6 +20,9 @@ class CreateNotificationsTable extends Migration
             $table->string('content');
             $table->boolean('is_read')->default(false);
             $table->timestamps();
+
+            // Foreign keys
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

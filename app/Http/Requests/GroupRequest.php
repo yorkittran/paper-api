@@ -25,7 +25,7 @@ class GroupRequest extends FormRequest
     {
         return [
             'name' => [
-                'required', 'min:6'
+                'required', 'min:5'
             ],
         ];
     }

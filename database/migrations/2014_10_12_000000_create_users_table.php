@@ -22,7 +22,6 @@ class CreateUsersTable extends Migration
             $table->string('role');
             $table->unsignedBigInteger('group_id')->nullable();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

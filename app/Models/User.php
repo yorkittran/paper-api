@@ -3,13 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use SoftDeletes;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -55,26 +52,26 @@ class User extends Authenticatable implements JWTSubject
 
     public function group()
     {
-        return $this->hasOne('App\Models\Group', 'manager_id')->withTrashed();
+        return $this->hasOne('App\Models\Group', 'manager_id');
     }
 
     public function inGroup()
     {
-        return $this->belongsTo('App\Models\Group', 'group_id', 'id')->withTrashed();
+        return $this->belongsTo('App\Models\Group', 'group_id', 'id');
     }
 
     public function givenTask()
     {
-        return $this->hasMany('App\Models\Task', 'assignee_id')->withTrashed();
+        return $this->hasMany('App\Models\Task', 'assignee_id');
     }
 
     public function handoutTask()
     {
-        return $this->hasMany('App\Models\Task', 'assigner_id')->withTrashed();
+        return $this->hasMany('App\Models\Task', 'assigner_id');
     }
 
     public function approvedTask()
     {
-        return $this->hasMany('App\Models\Task', 'approver_id')->withTrashed();
+        return $this->hasMany('App\Models\Task', 'approver_id');
     }
 }

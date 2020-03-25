@@ -35,12 +35,11 @@ class CreateTasksTable extends Migration
             $table->unsignedBigInteger('creator_id');
             $table->unsignedBigInteger('updater_id')->nullable();
             $table->timestamps();
-            $table->softDeletes();
 
             // Foreign keys
             $table->foreign('old_task')->references('id')->on('tasks');
-            $table->foreign('assigner_id')->references('id')->on('users');
-            $table->foreign('assignee_id')->references('id')->on('users');
+            $table->foreign('assigner_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('assignee_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('approver_id')->references('id')->on('users');
             $table->foreign('commenter_id')->references('id')->on('users');
             $table->foreign('creator_id')->references('id')->on('users');
