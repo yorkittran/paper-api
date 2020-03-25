@@ -31,31 +31,36 @@ class GroupController extends Controller
      */
     public function store(GroupRequest $request, Group $model)
     {
-        $user = JWTAuth::parseToken()->authenticate();
+        $auth_user = JWTAuth::parseToken()->authenticate();
         $group_id = $model->create($request->all())->id;
         User::whereIn('id', $request->get('selected_members'))->update(['group_id' => $group_id]);
-        $add = User::whereIn('id', $request->get('selected_members'))->get(['id', 'push_token'])->toArray();
+        $user_add = User::whereIn('id', $request->get('selected_members'))->get();
+
+        $user_add_token = [];
+        $user_add_id    = [];
+        foreach ($user_add as $user) {
+            $user ? array_push($user_add_token, $user->push_token) : true;
+            $user ? array_push($user_add_id, $user->id) : true;
+        }
 
         // Create push data
-        $to    = [];
         $title = 'New notification from system';
-        $body  = $user->name . ' has added you to ' . $request->get('name');
+        $body  = $auth_user->name . ' has added you to ' . $request->get('name');
 
-        foreach ($add as $add_user) {
-            $add_user->push_token ? array_push($to, $add_user->push_token) : true;
-            // Create notification record to database
-            Notification::create([
-                'user_id' => $add_user->id,
-                'title'   => $title,
-                'content' => $body,
+        foreach ($user_add_id as $id) {
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $id,
+            'title'   => $title,
+            'content' => $body,
             ]);
         }
 
         // Push notification
-        $to ? $this->pushToExpo($to, $body, $title) : true;
+        $user_add_token ? $this->pushToExpo($to, $body, $title) : true;
 
         return response()->json([
-            'message' => 'Create group successfully'
+            'message' => $to
         ]);
     }
 
@@ -78,7 +83,7 @@ class GroupController extends Controller
      */
     public function update(GroupRequest $request, Group $group)
     {
-        $authUser = JWTAuth::parseToken()->authenticate();
+        $auth_user = JWTAuth::parseToken()->authenticate();
         $group->update($request->all());
         $user_remove = User::where('group_id', $group->id)->get();
         User::where('group_id', $group->id)->update(['group_id' => null]);
@@ -88,14 +93,14 @@ class GroupController extends Controller
         $user_remove_token = [];
         $user_remove_id = [];
         foreach ($user_remove as $user) {
-            array_push($user_remove_token, $user->push_token);
-            array_push($user_remove_id, $user->id);
+            $user ? array_push($user_remove_token, $user->push_token) : true;
+            $user ? array_push($user_remove_id, $user->id) : true;
         }
         $user_add_token = [];
         $user_add_id = [];
         foreach ($user_add as $user) {
-            array_push($user_add_token, $user->push_token);
-            array_push($user_add_id, $user->id);
+            $user ? array_push($user_add_token, $user->push_token) : true;
+            $user ? array_push($user_add_id, $user->id) : true;
         }
 
         $to_add    = array_diff($user_add_token, $user_remove_token);
@@ -104,9 +109,9 @@ class GroupController extends Controller
         $remove_id = array_diff($user_remove_id, $user_add_id);
         // Create push data
         $title_add    = 'New notification from system';
-        $body_add     = $authUser->name . ' has added you to ' . $request->get('name');
+        $body_add     = $auth_user->name . ' has added you to ' . $request->get('name');
         $title_remove = 'New notification from system';
-        $body_remove  = $authUser->name . ' has removed you from ' . $request->get('name');
+        $body_remove  = $auth_user->name . ' has removed you from ' . $request->get('name');
 
         foreach ($add_id as $id) {
             // Create notification record to database

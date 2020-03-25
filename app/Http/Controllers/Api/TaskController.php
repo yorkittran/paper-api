@@ -60,6 +60,7 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request, Task $model)
     {
+        dd();
         $user = JWTAuth::parseToken()->authenticate();
         $isMember = $user->role == constants('user.role.member');
         $assignee_id = $isMember ? $user->id : $request->get('assignee_id');
