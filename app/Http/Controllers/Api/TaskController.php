@@ -237,7 +237,7 @@ class TaskController extends Controller
         $body  = $task->name . ' has been updated by ' . $user->name;
         $task->assignee_id == $user->id
             ? ($user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token)  : true)
-            : ($task->assignee->push_token ? array_push($to, $admin->push_token)  : true);
+            : ($task->assignee->push_token ? array_push($to, $task->assignee->push_token)  : true);
 
         // Create notification record to database
         Notification::create([
@@ -355,6 +355,23 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $task->delete();
+        $user = JWTAuth::parseToken()->authenticate();
+        // Create push data
+        $to    = [];
+        $title = $task->name . ' | Deleted Task';
+        $body  = $task->name . ' has been deleted by ' . $user->name;
+        $task->assignee->push_token ? array_push($to, $task->assignee->push_token) : true;
+
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $task->assignee_id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+
+        // Push notification
+        $to ? $this->pushToExpo($to, $body, $title) : true;
+
         return response()->json([
             'message' => 'Delete task successfully'
         ]);
