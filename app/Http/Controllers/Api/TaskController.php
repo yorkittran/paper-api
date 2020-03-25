@@ -60,7 +60,6 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request, Task $model)
     {
-        dd();
         $user = JWTAuth::parseToken()->authenticate();
         $isMember = $user->role == constants('user.role.member');
         $assignee_id = $isMember ? $user->id : $request->get('assignee_id');
@@ -106,7 +105,7 @@ class TaskController extends Controller
             ]);
         }
         // Push notification
-        $to ?? $this->pushToExpo($to, $body, $title);
+        $to ? $this->pushToExpo($to, $body, $title) : true;
 
         return response()->json([
             'message' => 'Create task successfully'
@@ -161,7 +160,7 @@ class TaskController extends Controller
         ]);
 
         // Push notification
-        $to ?? $this->pushToExpo($to, $body, $title);
+        $to ? $this->pushToExpo($to, $body, $title) : true;
 
         return response()->json([
             'message' => 'Approve task successfully'
@@ -204,7 +203,7 @@ class TaskController extends Controller
         ]);
 
         // Push notification
-        $to ?? $this->pushToExpo($to, $body, $title);
+        $to ? $this->pushToExpo($to, $body, $title) : true;
 
         return response()->json([
             'message' => 'Reject task successfully'
@@ -248,7 +247,7 @@ class TaskController extends Controller
         ]);
 
         // Push notification
-        $to ?? $this->pushToExpo($to, $body, $title);
+        $to ? $this->pushToExpo($to, $body, $title) : true;
 
         return response()->json([
             'message' => 'Update task successfully'
@@ -298,7 +297,7 @@ class TaskController extends Controller
         ]);
 
         // Push notification
-        $to ?? $this->pushToExpo($to, $body, $title);
+        $to ? $this->pushToExpo($to, $body, $title) : true;
 
         return response()->json([
             'message' => 'Commit task successfully'
