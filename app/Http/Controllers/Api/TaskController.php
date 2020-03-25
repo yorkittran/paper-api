@@ -77,8 +77,8 @@ class TaskController extends Controller
         $body = '';
         if ($isMember) {
             $admin = User::where('role', constants('user.role.admin'))->first();
-            if ($user->inGroup->manager->push_token) array_push($to, $user->inGroup->manager->push_token);
-            if ($admin->push_token) array_push($to, $admin->push_token);
+            $user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token) : true;
+            $admin->push_token ? array_push($to, $admin->push_token) : true;
             $body  = 'New task has been created by ' . $user->name . ' and waiting for approval';
 
             // Create notification record to database
@@ -94,7 +94,7 @@ class TaskController extends Controller
             ]);
         } else {
             $assignee = User::where('id', $assignee_id)->get('push_token')->first();
-            if ($assignee->push_token) array_push($to, $assignee->push_token);
+            $assignee->push_token ? array_push($to, $assignee->push_token) : true;
             $body = 'You have been assigned to a ' . constants('task.status.' . $status) . ' task by ' . $user->name;
 
             // Create notification record to database
@@ -105,7 +105,7 @@ class TaskController extends Controller
             ]);
         }
         // Push notification
-        $this->pushToExpo($to, $body, $title);
+        $to ?? $this->pushToExpo($to, $body, $title);
 
         return response()->json([
             'message' => 'Create task successfully'
@@ -138,12 +138,30 @@ class TaskController extends Controller
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
+        $status = date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started');
         $task->update($request->merge([
             'approver_id' => $user->id,
             'approved_at' => date("Y-m-d H:i:s"),
             'updater_id'  => $user->id,
-            'status'     => date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started')
+            'status'      => $status,
         ])->all());
+
+        // Create push data
+        $to    = [];
+        $title = $task->name . ' | ' . constants('task.status.' . $status) . ' Task';
+        $body  = $task->name . ' has been approved by ' . $user->name;
+        $task->assignee->push_token ? array_push($to, $task->assignee->push_token) : true;
+
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $task->assignee_id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+
+        // Push notification
+        $to ?? $this->pushToExpo($to, $body, $title);
+
         return response()->json([
             'message' => 'Approve task successfully'
         ]);
@@ -170,6 +188,23 @@ class TaskController extends Controller
             'approved_at' => date("Y-m-d H:i:s"),
             'status'      => constants('task.status.rejected')
         ])->all());
+
+        // Create push data
+        $to    = [];
+        $title = $task->name . ' | Rejected Task';
+        $body  = $task->name . ' has been rejected by ' . $user->name;
+        $task->assignee->push_token ? array_push($to, $task->assignee->push_token) : true;
+
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $task->assignee_id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+
+        // Push notification
+        $to ?? $this->pushToExpo($to, $body, $title);
+
         return response()->json([
             'message' => 'Reject task successfully'
         ]);
@@ -190,10 +225,30 @@ class TaskController extends Controller
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
+        $status = date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started');
         $task->update($request->merge([
             'updater_id' => $user->id,
-            'status'     => date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started')
+            'status'     => $status,
         ])->all());
+
+        // Create push data
+        $to    = [];
+        $title = $task->name . ' | ' . constants('task.status.' . $status) . ' Task';
+        $body  = $task->name . ' has been updated by ' . $user->name;
+        $task->assignee_id == $user->id
+            ? ($user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token)  : true)
+            : ($task->assignee->push_token ? array_push($to, $admin->push_token)  : true);
+
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $task->assignee_id == $user->id ? $user->inGroup->manager->id : $task->assignee_id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+
+        // Push notification
+        $to ?? $this->pushToExpo($to, $body, $title);
+
         return response()->json([
             'message' => 'Update task successfully'
         ]);
@@ -219,6 +274,31 @@ class TaskController extends Controller
             'committed_at' => date("Y-m-d H:i:s"),
             'status'       => constants('task.status.committed')
         ])->except([$request->get('start_at') < date("Y-m-d H:i:s") ? '' : 'status']));
+
+        // Create push data
+        $to    = [];
+        $title = $task->name . ' | Committed Task';
+        $body  = $task->name . ' has been committed by ' . $user->name;
+        $admin = User::where('role', constants('user.role.admin'))->first();
+
+        $user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token) : true;
+        $admin->push_token ? array_push($to, $admin->push_token) : true;
+
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $user->inGroup->manager->id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+        Notification::create([
+            'user_id' => $admin->id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+
+        // Push notification
+        $to ?? $this->pushToExpo($to, $body, $title);
+
         return response()->json([
             'message' => 'Commit task successfully'
         ]);
@@ -244,6 +324,23 @@ class TaskController extends Controller
             'evaluated_at' => date("Y-m-d H:i:s"),
             'updater_id'   => $user->id,
         ])->all());
+
+        // Create push data
+        $to    = [];
+        $title = $task->name . ' | ' . constants('task.status.' . $request->get('status')) . ' Task';
+        $body  = $task->name . ' has been evaluated by ' . $user->name;
+        $task->assignee->push_token ? array_push($to, $task->assignee->push_token) : true;
+
+        // Create notification record to database
+        Notification::create([
+            'user_id' => $task->assignee_id,
+            'title'   => $title,
+            'content' => $body,
+        ]);
+
+        // Push notification
+        $to ? $this->pushToExpo($to, $body, $title) : true;
+
         return response()->json([
             'message' => 'Evaluate task successfully'
         ]);
