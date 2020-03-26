@@ -69,7 +69,7 @@ class TaskController extends Controller
             'assigner_id' => $user->id,
             'assignee_id' => $assignee_id,
             'creator_id'  => $user->id,
-        ])->all();
+        ])->all());
 
         // Create push data
         $to = [];
