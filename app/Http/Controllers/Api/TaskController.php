@@ -138,7 +138,7 @@ class TaskController extends Controller
             );
         }
         $user = JWTAuth::parseToken()->authenticate();
-        $status = date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started');
+        $status = date("Y-m-d H:i:s") >= $task->start_at ? constants('task.status.ongoing') : constants('task.status.not_started');
         $task->update($request->merge([
             'approver_id' => $user->id,
             'approved_at' => date("Y-m-d H:i:s"),
