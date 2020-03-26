@@ -31,6 +31,13 @@ return [
             'completed'        => '6',
             'incompleted'      => '7',
             'overdue'          => '8',
+        ],
+        'mark' => [
+            '1' => 'Very Bad',
+            '2' => 'Bad',
+            '3' => 'Average',
+            '4' => 'Mostly Cover',
+            '5' => 'Excellent',
         ]
     ]
 ];

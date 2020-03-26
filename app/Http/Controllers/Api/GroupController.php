@@ -8,7 +8,6 @@ use App\Http\Resources\GroupResource;
 use App\Models\Group;
 use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Http\Response;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class GroupController extends Controller
@@ -48,11 +47,11 @@ class GroupController extends Controller
         $body  = $auth_user->name . ' has added you to ' . $request->get('name');
 
         foreach ($user_add_id as $id) {
-        // Create notification record to database
-        Notification::create([
-            'user_id' => $id,
-            'title'   => $title,
-            'content' => $body,
+            // Create notification record to database
+            Notification::create([
+                'user_id' => $id,
+                'title'   => $title,
+                'content' => $body,
             ]);
         }
 

@@ -24,7 +24,7 @@ class TaskResource extends JsonResource
             'commit_message' => $this->commit_message,
             'attached_file'  => $this->attached_file,
             'comment'        => $this->comment,
-            'mark'           => $this->mark,
+            'mark'           => constants('task.mark.' . $this->mark),
             'evaluated_at'   => $this->evaluated_at,
             'committed_at'   => $this->committed_at,
             'approved_at'    => $this->approved_at,
