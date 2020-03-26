@@ -26,4 +26,17 @@ class AuthController extends Controller
         $user->update($request->only('push_token'));
         return response()->json(['token' => $token, 'role' => constants('user.role.' . $user->role)], Response::HTTP_OK);
     }
+
+    /**
+     * Logout from system
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function logout()
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $user->push_token = null;
+        $user->update();
+        return Response::HTTP_NO_CONTENT;
+    }
 }

@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('login', 'Api\AuthController@login');
-// Route::post('logout', 'Api\AuthController@logout')->middleware('auth:api');
 
 Route::middleware('auth.role:Admin')->group(function () {
     // GroupController
@@ -48,17 +47,21 @@ Route::middleware('auth.role:Manager,Member')->group(function () {
     Route::match(['put', 'patch'], 'task/commit/{task}', 'Api\TaskController@commit')->name('task.commit');
 });
 
-// UserController
-Route::get('profile', 'Api\UserController@profile')->name('user.profile');
+Route::middleware('auth.role:Admin,Manager,Member')->group(function() {
+    Route::post('logout', 'Api\AuthController@logout');
 
-// NotificationController
-Route::get('notification', 'Api\NotificationController@index')->name('notification.index');
-Route::match(['put', 'patch'], 'notification/{notification}', 'Api\NotificationController@update')->name('notification.update');
+    // UserController
+    Route::get('profile', 'Api\UserController@profile')->name('user.profile');
 
-// TaskController
-Route::get('task', 'Api\TaskController@index')->name('task.index');
-Route::get('task/old', 'Api\TaskController@old')->name('task.old');
-Route::get('task/{task}', 'Api\TaskController@show')->name('task.show');
-Route::post('task', 'Api\TaskController@store')->name('task.store');
-Route::delete('task/{task}', 'Api\TaskController@destroy')->name('task.destroy');
-Route::match(['put', 'patch'], 'task/update/{task}', 'Api\TaskController@update')->name('task.update');
+    // NotificationController
+    Route::get('notification', 'Api\NotificationController@index')->name('notification.index');
+    Route::match(['put', 'patch'], 'notification/{notification}', 'Api\NotificationController@update')->name('notification.update');
+
+    // TaskController
+    Route::get('task', 'Api\TaskController@index')->name('task.index');
+    Route::get('task/old', 'Api\TaskController@old')->name('task.old');
+    Route::get('task/{task}', 'Api\TaskController@show')->name('task.show');
+    Route::post('task', 'Api\TaskController@store')->name('task.store');
+    Route::delete('task/{task}', 'Api\TaskController@destroy')->name('task.destroy');
+    Route::match(['put', 'patch'], 'task/update/{task}', 'Api\TaskController@update')->name('task.update');
+});
