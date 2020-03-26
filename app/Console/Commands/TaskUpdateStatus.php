@@ -20,7 +20,7 @@ class TaskUpdateStatus extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Update status and push notification to user';
 
     /**
      * Create a new command instance.
@@ -39,25 +39,25 @@ class TaskUpdateStatus extends Command
      */
     public function handle()
     {
-        // Pending Approval to Rejected
-        $rejected_tasks = Task::where('status', constants('task.status.pending_approval'))->where('end_at', '<=', date('Y-m-d'))->get();
-        Task::where('status', constants('task.status.pending_approval'))->where('end_at', '<=', date('Y-m-d'))->update(['status' => constants('task.status.rejected')]);
-        foreach ($rejected_tasks as $task) {
+        // Ongoing to overdue
+        $overdue_tasks = Task::where('status', constants('task.status.ongoing'))->where('end_at', '<=', date('Y-m-d H:i:s'))->get();
+        Task::where('status', constants('task.status.ongoing'))->where('end_at', '<=', date('Y-m-d H:i:s'))->update(['status' => constants('task.status.overdue')]);
+        foreach ($overdue_tasks as $task) {
             // Create push data
-            $title = $task->name . ' | Rejected Task';
-            $body  = $task->name . ' has been automatically changed to rejected';
+            $title = $task->name . ' | Overdue Task';
+            $body  = $task->name . ' has been automatically changed to ongoing';
             // Create notification record to database
             Notification::create([
                 'user_id' => $task->assignee_id,
                 'title'   => $title,
                 'content' => $body,
             ]);
-            $task->assignee->push_token ? $this->pushToExpo($task->assignee->push_token, $title, $body) : true;
+            $task->assignee->push_token ? $this->pushToExpo($task->assignee->push_token, $body, $title) : true;
         }
 
         // Not started to Ongoing
-        $ongoing_tasks = Task::where('status', constants('task.status.not_started'))->where('start_at', '>=', date('Y-m-d'))->get();
-        Task::where('status', constants('task.status.not_started'))->where('start_at', '>=', date('Y-m-d'))->update(['status' => constants('task.status.ongoing')]);
+        $ongoing_tasks = Task::where('status', constants('task.status.not_started'))->where('start_at', '<=', date('Y-m-d H:i:s'))->get();
+        Task::where('status', constants('task.status.not_started'))->where('start_at', '<=', date('Y-m-d H:i:s'))->update(['status' => constants('task.status.ongoing')]);
         foreach ($ongoing_tasks as $task) {
             // Create push data
             $title = $task->name . ' | Ongoing Task';
@@ -68,16 +68,16 @@ class TaskUpdateStatus extends Command
                 'title'   => $title,
                 'content' => $body,
             ]);
-            $task->assignee->push_token ? $this->pushToExpo($task->assignee->push_token, $title, $body) : true;
+            $task->assignee->push_token ? $this->pushToExpo($task->assignee->push_token, $body, $title) : true;
         }
 
-        // Ongoing to overdue
-        $overdue_tasks = Task::where('status', constants('task.status.ongoing'))->where('end_at', '<=', date('Y-m-d'))->get();
-        Task::where('status', constants('task.status.ongoing'))->where('end_at', '<=', date('Y-m-d'))->update(['status' => constants('task.status.overdue')]);
-        foreach ($overdue_tasks as $task) {
+        // Pending Approval to Rejected
+        $rejected_tasks = Task::where('status', constants('task.status.pending_approval'))->where('end_at', '<=', date('Y-m-d H:i:s'))->get();
+        Task::where('status', constants('task.status.pending_approval'))->where('end_at', '<=', date('Y-m-d H:i:s'))->update(['status' => constants('task.status.rejected')]);
+        foreach ($rejected_tasks as $task) {
             // Create push data
-            $title = $task->name . ' | Overdue Task';
-            $body  = $task->name . ' has been automatically changed to ongoing';
+            $title = $task->name . ' | Rejected Task';
+            $body  = $task->name . ' has been automatically changed to rejected';
             // Create notification record to database
             Notification::create([
                 'user_id' => $task->assignee_id,

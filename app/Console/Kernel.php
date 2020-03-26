@@ -13,7 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\TaskRemind::class,
+        Commands\TaskUpdateStatus::class,
     ];
 
     /**
@@ -25,6 +26,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('task:status')->everyMinute();
+        $schedule->command('task:remind')->daily();
     }
 
     /**
