@@ -38,8 +38,8 @@ class GroupController extends Controller
         $user_add_token = [];
         $user_add_id    = [];
         foreach ($user_add as $user) {
-            $user ? array_push($user_add_token, $user->push_token) : true;
-            $user ? array_push($user_add_id, $user->id) : true;
+            $user->push_token ? array_push($user_add_token, $user->push_token) : true;
+            array_push($user_add_id, $user->id);
         }
 
         // Create push data
@@ -56,10 +56,10 @@ class GroupController extends Controller
         }
 
         // Push notification
-        $user_add_token ? $this->pushToExpo($to, $body, $title) : true;
+        $user_add_token ? $this->pushToExpo($user_add_token, $body, $title) : true;
 
         return response()->json([
-            'message' => $to
+            'message' => 'Create group successfully'
         ]);
     }
 

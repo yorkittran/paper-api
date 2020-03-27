@@ -45,7 +45,7 @@ class TaskUpdateStatus extends Command
         foreach ($overdue_tasks as $task) {
             // Create push data
             $title = $task->name . ' | Overdue Task';
-            $body  = $task->name . ' has been automatically changed to ongoing';
+            $body  = $task->name . ' has been automatically changed to overdue';
             // Create notification record to database
             Notification::create([
                 'user_id' => $task->assignee_id,

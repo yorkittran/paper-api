@@ -46,7 +46,8 @@ class TaskController extends Controller
             return TaskResource::collection(Task::whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->orderByDesc('updated_at')->get());
         } else if ($user->role == constants('user.role.manager')) {
             $member_in_group = User::where('group_id', $user->group->id)->get('id')->toArray();
-            return TaskResource::collection(Task::whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->whereIn('assignee_id', $member_in_group)->orWhere('assignee_id', $user->id)->orderByDesc('updated_at')->get());
+            array_push($member_in_group, $user->id);
+            return TaskResource::collection(Task::whereIn('assignee_id', $member_in_group)->whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->orderByDesc('updated_at')->get());
         } else if ($user->role == constants('user.role.member')) {
             return TaskResource::collection(Task::whereNotIn('id', $old_task_picked)->whereIn('status', [constants('task.status.incompleted'), constants('task.status.overdue')])->where('assignee_id', $user->id)->orderByDesc('updated_at')->get());
         }
@@ -61,9 +62,8 @@ class TaskController extends Controller
     public function store(TaskRequest $request, Task $model)
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $isMember = $user->role == constants('user.role.member');
-        $assignee_id = $isMember ? $user->id : $request->get('assignee_id');
-        $status = $isMember ? constants('task.status.pending_approval') : (date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started'));
+        $assignee_id = $request->get('assignee_id') ?? $user->id;
+        $status = ($user->id == $request->get('assignee_id')) ? constants('task.status.pending_approval') : (date("Y-m-d H:i:s") >= $request->get('start_at') ? constants('task.status.ongoing') : constants('task.status.not_started'));
         $model->create($request->merge([
             'status'      => $status,
             'assigner_id' => $user->id,
@@ -75,18 +75,20 @@ class TaskController extends Controller
         $to = [];
         $title =  $request->get('name') . ' | ' . constants('task.status.' . $status) . ' Task';
         $body = '';
-        if ($isMember) {
+        if ($user->id == $request->get('assignee_id')) {
+            if ($user->role == constants('user.role.member')) {
+                $user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token) : true;
+                // Create notification record to database
+                Notification::create([
+                    'user_id' => $user->inGroup->manager->id,
+                    'title'   => $title,
+                    'content' => $body,
+                ]);
+            }
             $admin = User::where('role', constants('user.role.admin'))->first();
-            $user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token) : true;
             $admin->push_token ? array_push($to, $admin->push_token) : true;
             $body  = 'New task has been created by ' . $user->name . ' and waiting for approval';
 
-            // Create notification record to database
-            Notification::create([
-                'user_id' => $user->inGroup->manager->id,
-                'title'   => $title,
-                'content' => $body,
-            ]);
             Notification::create([
                 'user_id' => $admin->id,
                 'title'   => $title,
@@ -281,15 +283,15 @@ class TaskController extends Controller
         $body  = $task->name . ' has been committed by ' . $user->name;
         $admin = User::where('role', constants('user.role.admin'))->first();
 
-        $user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token) : true;
+        if ($user->role == constants('user.role.member')) {
+            $user->inGroup->manager->push_token ? array_push($to, $user->inGroup->manager->push_token) : true;
+            Notification::create([
+                'user_id' => $user->inGroup->manager->id,
+                'title'   => $title,
+                'content' => $body,
+            ]);
+        }
         $admin->push_token ? array_push($to, $admin->push_token) : true;
-
-        // Create notification record to database
-        Notification::create([
-            'user_id' => $user->inGroup->manager->id,
-            'title'   => $title,
-            'content' => $body,
-        ]);
         Notification::create([
             'user_id' => $admin->id,
             'title'   => $title,

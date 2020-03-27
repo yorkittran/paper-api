@@ -47,7 +47,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function hasNotifications()
     {
-        return $this->hasMany('App\Models\Notification')->orderByDesc('updated_at');
+        return $this->hasMany('App\Models\Notification')->orderByDesc('created_at');
     }
 
     public function group()
